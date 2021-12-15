@@ -127,7 +127,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key:_globalKey,
-        appBar: AppBar(title:Column(children: [Text('Welcome back',textAlign: TextAlign.start,style: TextStyle(color: Colors.black),),
+        appBar: AppBar(title:Column(crossAxisAlignment: CrossAxisAlignment.start,children: [Text('Welcome back',textAlign: TextAlign.start,style: TextStyle(color: Colors.black),),
         Text('Login to Your Account',style: TextStyle(fontSize: 10,color: Colors.grey),)]),backgroundColor: Colors.white,),
         body:SingleChildScrollView(child:Stack(
 
@@ -226,7 +226,7 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(height:20),
                       Align(alignment: Alignment.topRight,child:Text('Forgot Password',style:TextStyle(color: Colors.amber,decoration: TextDecoration.underline))),
                       SizedBox(height: 180,),
-                      Align(alignment: Alignment.center,child:Text('Are you a New User',style:TextStyle(color: Colors.black,decoration: TextDecoration.underline))),
+                      Align(alignment: Alignment.center,child:Text('Are you a New User',style:TextStyle(color: Colors.black))),
                       SizedBox(height: 20,),
                       Container(height: 55,width:MediaQuery. of(context). size. width ,color:LoginBottomColor,child:FlatButton(onPressed: (){NavigationService().navigationKey.currentState!.pushNamed(registrationRoute);},child: Text('CREATE ACCOUNT',style: TextStyle(color: Colors.white),),)),
 

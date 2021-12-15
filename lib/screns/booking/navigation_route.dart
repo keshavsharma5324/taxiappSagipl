@@ -1266,6 +1266,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:taxiapp/screns/booking/booking_cubit.dart';
+import 'package:taxiapp/screns/bookingconfirmed/booking_screen.dart';
+import 'package:taxiapp/screns/bookingconfirmed/bookingconfirm.dart';
 import 'package:taxiapp/utils/imagehelper.dart';
 
 
@@ -1476,6 +1478,14 @@ class _NavigationRouteState extends State<NavigationRoute> {
 
         });
         print('XYX test lat ${widget.accesstoken}');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => BookingConfirmScreen(userid: widget.userid,driverid: widget.driverid,accesstoken: widget.accesstoken!,latitude: widget.latitude,longitude: widget.longitude,sourcelatitude: widget.sourcelatitude,sourcelongitude: widget.sourcelongitude,)),
+        );
+       /* Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => BookingConfirmScreen(latitude: widget.sourcelatitude,longitude: widget.sourcelongitude,userid: widget.userid,driverid: widget.driverid,accesstoken: widget.accesstoken!,)),
+        );*/
 
       }),)
 

@@ -35,6 +35,7 @@ import 'package:taxiapp/screns/Profile%20and%20choice%20cab/profile_data_fetch.d
 
 import 'package:taxiapp/screns/SignIn/login_screen.dart';
 import 'package:taxiapp/screns/SignIn/register_screen.dart';
+import 'package:taxiapp/screns/bookingconfirmed/bookingconfirm.dart';
 import 'package:taxiapp/screns/my_google_map/my_google_map.dart';
 
 class RouteGenerator {
@@ -63,6 +64,10 @@ class RouteGenerator {
       case nearby:
         var argument = settings.arguments as dynamic;
         return MaterialPageRoute(builder: (_) => NearbyScreen(data: argument));
+
+      /*case bookingconfirm:
+        var argument = settings.arguments as dynamic;
+        return MaterialPageRoute(builder: (_) => Bookingconfirm());*/
 
      /* case emailRoute:
         var argument = settings.arguments as dynamic;

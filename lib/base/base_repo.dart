@@ -667,6 +667,15 @@ class BaseRepo {
       throw Exception(e.toString());
     }
   }
+  dynamic getBookedCab(String token) async {
+    try {
+      var data = await hitApi(Constants.getBookedCab, accessToken: token//, isDelete: false
+      );
+      return data;
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
 
   dynamic updateProfile(params,String token,int Id) async {
     try {

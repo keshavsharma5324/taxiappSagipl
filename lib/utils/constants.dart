@@ -49,6 +49,7 @@ class Constants {
   static String changePassword = 'add-password';
 
   static String getTaxiList = 'taxi-type-list';
+  static String getBookedCab = 'fetch-driver-data';
 
   static String login = 'login';
   static String logout = 'logout';
