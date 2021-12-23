@@ -469,6 +469,9 @@ class _BookedRouteState extends State<BookedRoute> {
         app=true;
       });
     });
+    Timer.periodic(Duration(seconds: 30), (timer) {
+      widget.getbookingconfirmed!();
+    });
   }
 
   void setInitialLocation() {

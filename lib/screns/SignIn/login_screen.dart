@@ -7,6 +7,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxiapp/Model/response/model/auth/login_response.dart';
 import 'package:taxiapp/Model/response/model/profile/profile_response.dart';
 //import 'package:flutter_cubit/flutter_cubit.dart';
@@ -84,6 +85,12 @@ class LoginScreenState extends State<LoginScreen> {
                     "user_id": loginResponse.success.userId,
                     "token": loginResponse.success.token
                   };
+
+                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                    prefs.setString('tokenValue',loginResponse.success.token! );
+                  String stringValue = prefs.getString('tokenValue')!;
+                  print('stringvalue  ${stringValue}');
+
                   NavigationService().navigationKey.currentState!.pushNamed(personalDetailsRoute, arguments: args);
                  // print(loginResponse.success.token);
 

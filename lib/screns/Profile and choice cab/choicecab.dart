@@ -63,7 +63,7 @@ class _BookRideState extends State<BookRide> {
   var timeout = Duration(seconds: 3);
  // var _scaffoldKey;
   List<Image> checkboxbool =<Image>[Image.asset(bikeride),Image.asset(carride),Image.asset(auto)];
-  final List<String> newData =<String>['Motor Bike','Car','Auto Rickha'];
+  //final List<String>  =<String>['Motor Bike','Car','Auto Rickha'];
   final List<int> newTime =<int>[2,5,7];
   String name = 'xyz';
   String cab_number = 'NYK 1';
@@ -122,12 +122,16 @@ class _BookRideState extends State<BookRide> {
     /*_controller.addListener(() {
        _onChanged();
      });*/
-
-    Timer(Duration(seconds: 3), () {
-      setState(() {
-        _onAddMarkerButtonPressed();
-      });
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      _onAddMarkerButtonPressed();
     });
+
+    /*Timer(Duration(seconds: 3), () {
+      setState(() {
+        setCurrentLocation();
+
+      });
+    });*/
     //_destLatitude = widget!.latitude!;
     //_destLongitude = widget!.longitude!;
     //
@@ -192,6 +196,7 @@ class _BookRideState extends State<BookRide> {
     setState(() {
       currentLocation;
       _lastMapPosition = LatLng(currentLocation.latitude, currentLocation.longitude);
+      // LatLng(_destLatitude, _destLongitude);
       //_originLatitude = currentLocation.latitude;
       //_originLongitude = currentLocation.longitude;
 
@@ -281,7 +286,11 @@ class _BookRideState extends State<BookRide> {
       _markers.add(
           Marker(
               markerId: MarkerId(_lastMapPosition.toString()),
-              position: _lastMapPosition,
+              position: _lastMapPosition,draggable: true,
+              onDragEnd: ((newPosition) {
+                print(newPosition.latitude);
+                print(newPosition.longitude);
+              }),
               infoWindow: InfoWindow(
                   title: "Pizza Parlour",
                   snippet: "This is a snippet",
@@ -323,7 +332,7 @@ class _BookRideState extends State<BookRide> {
         ? Center(
       child: CircularProgressIndicator(),
     )
-        : SafeArea(child: Stack(children:[ListView(
+        : SafeArea(child: Stack(children:[Column(
       children: [
 
     Row(crossAxisAlignment: CrossAxisAlignment.start,children: [
@@ -504,6 +513,8 @@ Container(color: Color(0xffFFFFFF),width: MediaQuery.of(context).size.width-50,c
 
                             _destLatitude = locations![0].latitude;
                             _destLongitude = locations![0].longitude;
+                            _lastMapPosition = LatLng(_destLatitude, _destLongitude);
+                           // _onAddMarkerButtonPressed();
                           });
                           print(locations);
                         },
@@ -585,5 +596,16 @@ Container(color: Color(0xffFFFFFF),width: MediaQuery.of(context).size.width-50,c
       ,
     );
   }
+ /* void _updatePosition(CameraPosition _position) {
+    Position newMarkerPosition = Position(
+        latitude: _position.target.latitude,
+        longitude: _position.target.longitude);
+    Marker marker = markers["1"]!;
+
+    setState(() {
+      markers['${1}'] = marker.copyWith(
+          positionParam: LatLng(newMarkerPosition.latitude, newMarkerPosition.longitude));
+    });
+  }*/
 
 }

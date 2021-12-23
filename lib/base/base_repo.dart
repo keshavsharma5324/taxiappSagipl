@@ -605,7 +605,7 @@ class BaseRepo {
   Future<List<PlaceSearch>> getAutocomplete(String search) async {
     //search 가 쿼리, 즉 서치 파라미터
     var url =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${search.toString()}&types=(cities)&key=${key.toString()}';
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${search.toString()}&country=(IN)&key=${key.toString()}';
     var json = await hitApi(url);
    // var json = convert.jsonDecode(response.body);
     var jsonResults =

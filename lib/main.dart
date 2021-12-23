@@ -98,6 +98,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loader_overlay/loader_overlay.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxiapp/route/route_constant.dart';
 //import 'package:socket_io_client/socket_io_client.dart';
 import 'package:taxiapp/route/route_generator.dart';
@@ -135,12 +136,34 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // @override
-  // void initState() {
-  //   super.initState();
-  //
-  //   getLoginStatus();
-  // }
+  SharedPreferences? logindata;
+  String? token;
+  var stringValue;
+  getStringValuesSF() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    //Return String
+    setState(() {
+      stringValue = prefs.getString('tokenValue')!;
+    });
+    print(stringValue);
+    //return stringValue;
+  }
+   @override
+   void initState() {
+    super.initState();
+    getStringValuesSF();
+
+   // super.initState();
+    initial();
+    //getLoginStatus();
+   }
+  void initial() async {
+    logindata = await SharedPreferences.getInstance();
+    setState(() {
+      token = logindata!.getString('tokenValue');
+    });
+    print(token);
+  }
   //
   // Future<Null> getLoginStatus() async {
   //   var isLogin = await TaxiUKPrefs.instance.getLoginStatus();
@@ -186,7 +209,7 @@ class _MyAppState extends State<MyApp> {
             primarySwatch: Colors.blue,
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),//home: KeyboardDemo(),
-          initialRoute: login,
+          initialRoute: stringValue!=null?nearby:login,
           onGenerateRoute: RouteGenerator.generateRoute,
         ));//);
   }
