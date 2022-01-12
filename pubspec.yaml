@@ -56,7 +56,7 @@ dependencies:
   location:
   permission_handler:
   app_settings:
-  socket_io_client:
+  socket_io_client: ^1.0.0
   flutter_polyline_points:
 
 

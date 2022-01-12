@@ -21,7 +21,7 @@ import 'package:taxiapp/route/route_constant.dart';
 import 'package:taxiapp/screns/Profile/choicecab.dart';
 import 'package:taxiapp/screns/Profile/get_nearby_derivers_cubit.dart';
 import 'package:taxiapp/screns/registerUser/personal_details_screen.dart';
-import 'package:taxiapp/screns/registerUser/booking_state.dart';
+import 'package:taxiapp/screns/registerUser/nearby_state.dart';
 import 'package:taxiapp/service/navigation_service.dart';
 import 'package:taxiapp/utils/AppUtils.dart';
 import 'package:taxiapp/utils/Constant.dart';

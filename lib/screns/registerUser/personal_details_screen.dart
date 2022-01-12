@@ -21,10 +21,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:customer/utils/Constant.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:customer/ui/personal_details/booking_state.dart';*/
+import 'package:customer/ui/personal_details/nearby_state.dart';*/
 import 'package:taxiapp/base/base_repo.dart';
 import 'package:taxiapp/screns/registerUser/personal_details_cubit.dart';
-import 'package:taxiapp/screns/registerUser/booking_state.dart';
+import 'package:taxiapp/screns/registerUser/nearby_state.dart';
 import 'package:taxiapp/service/navigation_service.dart';
 import 'package:taxiapp/utils/AppUtils.dart';
 import 'package:taxiapp/utils/Constant.dart';

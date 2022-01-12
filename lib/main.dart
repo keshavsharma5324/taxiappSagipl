@@ -100,7 +100,7 @@ import 'package:flutter/services.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxiapp/route/route_constant.dart';
-//import 'package:socket_io_client/socket_io_client.dart';
+import 'package:socket_io_client/socket_io_client.dart';
 import 'package:taxiapp/route/route_generator.dart';
 import 'package:taxiapp/screns/Bitcoin_converter.dart';
 
@@ -129,6 +129,18 @@ void main() {
   );
   runApp(MyApp());
 }
+class StreamSocket {
+  final _socketResponse = StreamController<Map<String, dynamic>>();
+
+  void Function(Map<String, dynamic> data) get addResponse =>
+      _socketResponse.sink.add;
+
+  Stream<Map<String, dynamic>> get getResponse => _socketResponse.stream;
+
+  void dispose() {
+    _socketResponse.close();
+  }
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -136,9 +148,52 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  Socket? socket;
+  StreamSocket streamSocket = StreamSocket();
   SharedPreferences? logindata;
   String? token;
   var stringValue;
+  var args;
+  var newLaunch;
+
+
+  void connectToServer() {
+    try {
+      socket = io(
+          'http://192.168.0.105:30011',
+          // 'https://18.135.229.214:3100',
+          //'http://127.0.0.1:3000',
+          OptionBuilder().setTransports(['websocket']).build());
+
+      socket!.onConnect((_) {
+        print('connect');
+        //socket!.emit('msg', 'test');
+      });
+
+      //When an event recieved from server, data is added to the stream
+      socket!.on('event', (data) => streamSocket.addResponse);
+      socket!.on('message', (data) => streamSocket.addResponse);
+      socket!.on('message', (data) => streamSocket.addResponse);
+      socket!.onDisconnect((_) => print('disconnect1'));
+
+      // Connect to websocket
+      socket!.connect();
+      print('Socket test result:    ${socket!.connected}');
+
+      // Handle socket events
+      socket!.on('connect', (_) => print('connect: ${socket!.id}'));
+      // socket.on('location', handleLocationListen);
+      //socket!.on('typing', (data) => handleTyping(data));
+     // socket!.on('message', (data) => handleMessage(data));
+      socket!.on('disconnect', (_) => print('disconnect2'));
+      //When an event recieved from server, data is added to the stream
+      socket!.on('message', (data) => streamSocket.addResponse);
+      socket!.on('fromServer', (_) => print(_));
+    } catch (e) {
+      print("error >> connectToServer");
+      print(e.toString());
+    }
+  }
   getStringValuesSF() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     //Return String
@@ -155,8 +210,29 @@ class _MyAppState extends State<MyApp> {
 
    // super.initState();
     initial();
+    loadNewLaunch();
+     //connectToServer();
+
     //getLoginStatus();
    }
+  loadNewLaunch() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+     args=await {
+      "from": 'login',
+      "code": 'ffrr',
+      "user_id": prefs.getString('user_id'),//Response.success.userId,
+      "token": prefs.getString('tokenValue'),
+      "latitude": prefs.getString('latitude'),
+      "longitude": prefs.getString('longitude')
+    };
+    setState(() {
+      bool _newLaunch = ((prefs.getBool('newLaunch') ?? true));
+      print('latude ${prefs.getString('latitude')}');
+      print(_newLaunch);
+      newLaunch = _newLaunch;
+
+    });
+  }
   void initial() async {
     logindata = await SharedPreferences.getInstance();
     setState(() {
@@ -209,7 +285,7 @@ class _MyAppState extends State<MyApp> {
             primarySwatch: Colors.blue,
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),//home: KeyboardDemo(),
-          initialRoute: stringValue!=null?nearby:login,
+          initialRoute: login,
           onGenerateRoute: RouteGenerator.generateRoute,
         ));//);
   }

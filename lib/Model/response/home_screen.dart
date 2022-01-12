@@ -23,7 +23,7 @@ import 'package:flutter_cubit/flutter_cubit.dart';
 import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:customer/ui/personal_details/frag/dashboard_cubit.dart';
-import 'package:customer/ui/personal_details/booking_state.dart';
+import 'package:customer/ui/personal_details/nearby_state.dart';
 import 'package:booking_package/booking_package.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 //import 'package:google_maps_flutter/google_maps_flutter.dart';

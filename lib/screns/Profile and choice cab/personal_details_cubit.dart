@@ -1,6 +1,6 @@
 //import 'package:cubit/cubit.dart';
 //import 'package:customer/ui/base/base_repo.dart';
-//import 'package:customer/ui/personal_details/booking_state.dart';
+//import 'package:customer/ui/personal_details/nearby_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taxiapp/base/base_repo.dart';
 import 'package:taxiapp/screns/registerUser/profile_state.dart';

@@ -1,12 +1,16 @@
 
 //import 'dart:html';
 
+import 'dart:async';
 import 'dart:io';
-
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxiapp/Model/response/model/driversocket.dart';
+import 'package:taxiapp/Model/response/model/nearest.dart';
 import 'package:taxiapp/route/route_constant.dart';
 import 'package:taxiapp/service/navigation_service.dart';
 import 'package:taxiapp/utils/ColorHelper.dart';
@@ -30,42 +34,79 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool _isObscure = true;
+  bool _isObscure = true,auto =false;
   bool? isEmail;
   final GlobalKey<ScaffoldState> _globalKey = GlobalKey();
   TextEditingController _controllerUsername = TextEditingController();
   TextEditingController _controllerPassword = TextEditingController();
   bool isEditing = false;
+  SharedPreferences? logindata;
+  String? token;
+  var stringValue;
+  var args;
+  var newLaunch;
+  Driver? driver;
   void initState() {
     super.initState();
+    connect();
     _getGeoLocationPosition();
+    loadNewLaunch();
+    Timer(Duration(seconds: 2), () {
+      setState(() {
+        auto = true;
+      });
+    });
+
    // initPlatformState();
    //` getDeviceDetails();
   }
-  /*static Future<List<String>> getDeviceDetails() async {
-    String? deviceName;
-    String? deviceVersion;
-    String? identifier;
-    final DeviceInfoPlugin deviceInfoPlugin = new DeviceInfoPlugin();
-    try {
-      if (Platform.isAndroid) {
-        var build = await deviceInfoPlugin.androidInfo;
-        deviceName = build.model;
-        deviceVersion = build.version.toString();
-        identifier = build.androidId;  //UUID for Android
-      } else if (Platform.isIOS) {
-        var data = await deviceInfoPlugin.iosInfo;
-        deviceName = data.name;
-        deviceVersion = data.systemVersion;
-        identifier = data.identifierForVendor;  //UUID for iOS
-      }
-    } on PlatformException {
-      print('Failed to get platform version');
-    }
+  void connect()async{
+    Position position = await _getGeoLocationPosition();
+    //var data={'user_id':'3','lat':currentLocation!.latitude,'long':currentLocation!.longitude,'user_name':'babulal','driver_id':'3'};
+    IO.Socket socket = IO.io('http://192.168.0.105:30011',
+        IO.OptionBuilder()
+            .setTransports(['websocket']) // for Flutter or Dart VM
 
-//if (!mounted) return;
-    return [deviceName!, deviceVersion!, identifier!];//[deviceName!, deviceVersion!, identifier!];
-  }*/
+            .disableAutoConnect()  // disable auto-connection
+        //.setExtraHeaders({'foo': 'bar'}) // optional
+            .build()
+    );
+    socket.connected?null:socket.connect();
+    var data={'user_id':'3','startlat': '26.8611','startlng': '75.7953'};
+    socket.emit('send_nearest_driver', data);
+
+    socket.on('get_nearest_driver_3', (data) {
+      // driver = Driver.fromJson(data);
+
+      Nearest nearest = Nearest.fromJson(data);
+      print(nearest.startlng.toString());
+      //  print(driver!.userName);
+    });
+
+    print('check socket connection: ${socket.connected}');
+
+
+  }
+  loadNewLaunch() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    args=await {
+      "from": 'login',
+      "code": 'ffrr',
+      "user_id": prefs.getString('user_id'),//Response.success.userId,
+      "token": prefs.getString('tokenValue'),
+      "latitude": prefs.getString('latitude'),
+      "longitude": prefs.getString('longitude')
+    };
+    setState(() {
+      bool _newLaunch = ((prefs.getBool('newLaunch') ?? true));
+      print('latude ${prefs.getString('latitude')}');
+      print(_newLaunch);
+      newLaunch = _newLaunch;
+
+    });
+    newLaunch?null:NavigationService().navigationKey.currentState!.pushNamed(nearby, arguments: args);
+  }
+
   Future<String> _getId() async {
     var deviceInfo = DeviceInfoPlugin();
     if (Platform.isIOS) { // import 'dart:io'
@@ -127,9 +168,9 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key:_globalKey,
-        appBar: AppBar(title:Column(crossAxisAlignment: CrossAxisAlignment.start,children: [Text('Welcome back',textAlign: TextAlign.start,style: TextStyle(color: Colors.black),),
-        Text('Login to Your Account',style: TextStyle(fontSize: 10,color: Colors.grey),)]),backgroundColor: Colors.white,),
-        body:SingleChildScrollView(child:Stack(
+        appBar: auto?AppBar(title:Column(crossAxisAlignment: CrossAxisAlignment.start,children: [Text('Welcome back',textAlign: TextAlign.start,style: TextStyle(color: Colors.black),),
+        Text('Login to Your Account',style: TextStyle(fontSize: 10,color: Colors.grey),)]),backgroundColor: Colors.white,):null,
+        body:auto?SingleChildScrollView(child:Stack(
 
             children:[
               Container(
@@ -234,7 +275,7 @@ class _LoginPageState extends State<LoginPage> {
 
                     ],
                   ))])
-    ));
+    ):CircularProgressIndicator());
   }
   bool isValidate() {
     var phone = _controllerUsername.text.toString().trim();
@@ -284,6 +325,9 @@ class _LoginPageState extends State<LoginPage> {
               //"user_type": Constants.userTypePassenger,
             };
             _globalKey.currentContext!.read<LoginCubit>().doLogin(data);
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            prefs.setString('latitude',latitude.toString().trim());
+            prefs.setString('longitude',longitude.toString().trim());
           }else{
             _globalKey.currentState!.showSnackBar(getSnackBar(
                 "Please check your internet connection.",
@@ -335,6 +379,9 @@ class _LoginPageState extends State<LoginPage> {
             //  "user_type": Constants.userTypePassenger,
             };
             _globalKey.currentContext!.read<LoginCubit>().doLogin(data);
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            prefs.setString('latitude',latitude);
+            prefs.setString('longitude',longitude);
           }else{
             _globalKey.currentState!.showSnackBar(getSnackBar(
                 "Please check your internet connection.",

@@ -1258,6 +1258,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }*/
 import 'dart:async';
 import 'dart:math';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -1265,6 +1266,8 @@ import 'package:geolocator/geolocator.dart';
 //import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:taxiapp/Model/response/model/nearest.dart';
+
 import 'package:taxiapp/screns/booking/booking_cubit.dart';
 import 'package:taxiapp/screns/bookingconfirmed/booking_screen.dart';
 import 'package:taxiapp/screns/bookingconfirmed/bookingconfirm.dart';
@@ -1300,7 +1303,8 @@ class NavigationRoute extends StatefulWidget {
   String? accesstoken;
   Function? getnearby;
   double? latitude,longitude,sourcelatitude,sourcelongitude,distancecar,distancebike,distanceauto;
-  NavigationRoute({this.idauto,this.idbike,this.idcar,this.distancecar,this.distancebike,this.distanceauto,this.getnearby,this.data,this.latitude,this.longitude,this.sourcelatitude,this.sourcelongitude,this.driverid,this.accesstoken,this.userid});
+  Nearest? nearest;
+  NavigationRoute({this.nearest,this.idauto,this.idbike,this.idcar,this.distancecar,this.distancebike,this.distanceauto,this.getnearby,this.data,this.latitude,this.longitude,this.sourcelatitude,this.sourcelongitude,this.driverid,this.accesstoken,this.userid});
   @override
   _NavigationRouteState createState() => _NavigationRouteState();
 }
@@ -1317,7 +1321,7 @@ class _NavigationRouteState extends State<NavigationRoute> {
   LatLng? destinationLocation;
   double distanceInMeters = 0;
   List<dynamic>? data;
-  bool price= false;//car=false,bike=false,auto=false;
+  bool price= false;
 
   Set<Polyline> _polylines = Set<Polyline>();
   List<LatLng> polylineCoordinates = [];
@@ -1330,6 +1334,32 @@ class _NavigationRouteState extends State<NavigationRoute> {
         c(lat1 * p) * c(lat2 * p) *
             (1 - c((lon2 - lon1) * p))/2;
     return 12742 * asin(sqrt(a));
+  }
+  void connect(){
+    IO.Socket socket = IO.io('http://192.168.0.105:30011',
+        IO.OptionBuilder()
+            .setTransports(['websocket']) // for Flutter or Dart VM
+
+            .disableAutoConnect()  // disable auto-connection
+        //.setExtraHeaders({'foo': 'bar'}) // optional
+            .build()
+    );
+    socket.connected?null:socket.connect();
+
+    socket.on('get_driver_location_4', (data) {
+      //driver = Driver.fromJson(data);
+      print(data);
+    //  print(driver!.userName);
+    });
+    socket.on('get_driver_location_1', (data) {
+      // driver = Driver.fromJson(data);
+      print(data);
+      //  print(driver!.userName);
+    });
+
+    print('check socket connection: ${socket.connected}');
+
+
   }
 
 
@@ -1346,11 +1376,9 @@ class _NavigationRouteState extends State<NavigationRoute> {
 
     widget.getnearby!();
     polylinePoints = PolylinePoints();
+    connect();
 
     this.setInitialLocation();
-    //Timer(Duration(seconds: 3), () {
-
-    //this.distance();
 
     Timer(Duration(seconds: 3), () {
       setState(() {
@@ -1361,7 +1389,7 @@ class _NavigationRouteState extends State<NavigationRoute> {
 
   void setInitialLocation() {
     setState(() {
-     // newDistance =<double>[widget.distancebike!,widget.distancecar!,widget.distanceauto!];
+
       currentLocation =
           LatLng(widget.sourcelatitude!, widget.sourcelongitude!);
       destinationLocation =
@@ -1377,11 +1405,9 @@ class _NavigationRouteState extends State<NavigationRoute> {
       ];
       for(var i = 0; i < data!.length-1; i++){
         setState(() {
-          distanceInMeters = distanceInMeters! + calculateDistance(data![i]["lat"], data![i]["lng"], data![i+1]["lat"], data![i+1]["lng"])!;
+          distanceInMeters = distanceInMeters + calculateDistance(data![i]["lat"], data![i]["lng"], data![i+1]["lat"], data![i+1]["lng"]);
         });}
 
-
-   // print(totalDistance);
 
     });
 
@@ -1414,7 +1440,7 @@ class _NavigationRouteState extends State<NavigationRoute> {
           setPolylines();
         },
         initialCameraPosition: CameraPosition(
-          //target: LatLng(widget.sourcelatitude!,widget.sourcelongitude!),
+
           target: LatLng(currentLocation!.latitude,currentLocation!.longitude),
           zoom: 13,
         ),
@@ -1437,7 +1463,7 @@ class _NavigationRouteState extends State<NavigationRoute> {
                   index<1?id=widget.idbike:index<2?id=widget.idcar:index<3?id=widget.idauto:null;
                   price = true;
                   distanceInMeters = 0;
-                  distanceInMeters =  calculateDistance(data![0]["lat"], data![0]["lng"], data![0+1]["lat"], data![0+1]["lng"])!;
+                  distanceInMeters =  calculateDistance(data![0]["lat"], data![0]["lng"], data![0+1]["lat"], data![0+1]["lng"]);
 
                   index<1?distanceInMeters=distanceInMeters*2:index<2?distanceInMeters=distanceInMeters*5:index<3?distanceInMeters=distanceInMeters*3:null;
                 });
@@ -1459,21 +1485,19 @@ class _NavigationRouteState extends State<NavigationRoute> {
       //Text('time ${(widget.distance!=null?widget.distance:0).toString()}',style: TextStyle(fontSize: 16,fontWeight: FontWeight.w500,color: Colors.amber),),
       //Text('Distance ${(distanceInMeters!).toString()}',style: TextStyle(fontSize: 22,fontWeight: FontWeight.w500,color: Colors.amber),),
 
-      price?Text(' Rs ${(distanceInMeters!*3)!.toStringAsFixed(2)}',style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold,color: Colors.blue),):Text(''),
+      price?Text(' Rs ${(distanceInMeters*3).toStringAsFixed(2)}',style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold,color: Colors.blue),):Text(''),
       SizedBox(height: 10,),
       Container(color: Colors.amberAccent,height: 50,width: MediaQuery.of(context).size.width,margin: EdgeInsets.symmetric(horizontal: 16),child: InkWell(child: Center(child:Text('Confirm Booking',style: TextStyle(fontWeight: FontWeight.w600,fontSize: 22,color: Colors.white),),),onTap: (){
         setState(() {
           context.read<BookingCubit>().requestNearbyDrivers({
-            //   "email": phone,
-            //  "password": password,
+
             "driver_id": id,
             "user_id" : widget.userid,
             "latitude": widget.sourcelatitude,//latitude,
             "longitude": widget.sourcelongitude,//identifier
             "destination_latitude": widget.latitude,//latitude,
             "destination_longitude": widget.longitude,
-            //"ext": Constants.defaultCountryCode,
-            //"user_type": Constants.userTypePassenger,
+
           }, widget.accesstoken);
 
         });
@@ -1495,17 +1519,6 @@ class _NavigationRouteState extends State<NavigationRoute> {
     );
   }
 
-  /*void distance()async{
-    distanceInMeters = await (Geolocator.bearingBetween(
-      currentLocation!.latitude,
-      currentLocation!.longitude,
-      destinationLocation!.latitude,
-      destinationLocation!.longitude,
-    )).abs();
-    print(distanceInMeters);
-    setState(() {
-      fare = distanceInMeters! * 20;
-    });}*/
 
   void showMarker() {
     setState(() {
@@ -1523,12 +1536,7 @@ class _NavigationRouteState extends State<NavigationRoute> {
     });
   }
 
-  /*double distanceInMeters = await Geolocator.bearingBetween(
-      startLatitude,
-      startLongitude,
-      destinationLatitude,
-      destinationLongitude,
-      );*/
+
 
   void setPolylines() async {
     PolylineResult result = await polylinePoints!.getRouteBetweenCoordinates(

@@ -200,57 +200,56 @@ class NearbyScreenState extends State<NearbyScreen> {
 //import 'package:customer/ui/base/base_repo.dart';
 //import 'package:customer/ui/base/base_state.dart';
 //import 'package:customer/ui/customviews/my_error_dialog.dart';
-import 'package:flutter/cupertino.dart';
+/*import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-//import 'package:taxiapp/Model/response/model/auth/login_response.dart';
-//import 'package:taxiapp/Model/response/model/profile/profile_response.dart';
-//import 'package:flutter_cubit/flutter_cubit.dart';
-//import 'package:customer/utils/Constant.dart';
-//import 'package:customer/model/auth/register_response.dart';
-//import 'package:customer/utils/constants.dart';
+import 'package:taxiapp/Model/response/model/nearest.dart';
+import 'package:taxiapp/Model/response/model/search_cab.dart';
+
 import 'package:taxiapp/base/base_repo.dart';
-//import 'package:taxiapp/base/base_state.dart';
-import 'package:taxiapp/local/preference_key.dart';
-import 'package:taxiapp/local/taxi_uk_preference.dart';
-import 'package:taxiapp/route/route_constant.dart';
-import 'package:taxiapp/screns/Profile%20and%20choice%20cab/Nearby_Response.dart';
+import 'package:taxiapp/base/base_state.dart';
+
+//  `import 'package:taxiapp/screns/Profile%20and%20choice%20cab/Nearby_Response.dart';
+import 'package:taxiapp/screns/booking/booking_cubit.dart';
+import 'package:taxiapp/screns/booking/booking_state.dart';
+import 'package:taxiapp/screns/booking/navigation_route.dart';
 
 import 'package:taxiapp/screns/registerUser/personal_details_screen.dart';
-import 'package:taxiapp/screns/registerUser/profile_state.dart';
+import 'package:taxiapp/screns/searchcab.dart';
+
 import 'package:taxiapp/service/navigation_service.dart';
 import 'package:taxiapp/utils/AppUtils.dart';
 import 'package:taxiapp/utils/Constant.dart';
 import 'package:taxiapp/utils/constants.dart';
 import 'package:taxiapp/utils/shared_preference_utils.dart';
 import 'package:taxiapp/screns/drawer.dart';
-//import '../../ui/login/login_cubit.dart';
-//import 'loginPage.dart';
-//import 'login_cubit.dart';
-//import 'login_ui.dart';
-import 'choicecab.dart';
-import 'get_nearby_derivers_cubit.dart';
-import 'personal_details_cubit.dart';
+*/
 
-class NearbyScreen extends StatefulWidget {
-  final dynamic? data;
-  int? id;
-  NearbyScreen({this.data,this.id});
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:taxiapp/Model/response/model/nearest.dart';
+import 'package:taxiapp/base/base_repo.dart';
+import 'package:taxiapp/screns/nearbyrides/nearby_cubit.dart';
+import 'package:taxiapp/screns/nearbyrides/nearby_state.dart';
+import 'package:taxiapp/utils/Constant.dart';
+
+import 'nearby.dart';
+
+class NearbydataScreen extends StatefulWidget {
+  //final dynamic? data;
+
+  int? userid,driverid;
+  String? accesstoken;
+  double? latitude,longitude,sourcelatitude,sourcelongitude;
+  Nearest? nearest;
+  NearbydataScreen({this.nearest,this.latitude,this.longitude,this.sourcelatitude,this.sourcelongitude,this.userid,this.driverid,this.accesstoken});
 
   @override
-  State<StatefulWidget> createState() => NearbyScreenState();
+  State<StatefulWidget> createState() => NearbydataScreenState();
 }
 
-class NearbyScreenState extends State<NearbyScreen> {
-  String? firstname;
-  String? lastname;
-  String? email;
-  String? mobile;
-  String? user_name;
-  double? distance;
-  double? longitude;
-  double? latitude;
-  int? id,userid;
+class NearbydataScreenState extends State<NearbydataScreen> {
+
 
   //token ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNjMyNDg1NTUwLCJleHAiOjE2MzI1NzE5NTB9.Pq1kqi_BeF_IWI_4ZrXhisWXICvYJO5i5fGsDR6oPIw';
 
@@ -260,43 +259,48 @@ class NearbyScreenState extends State<NearbyScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => NearbyDetailsCubit(repo: BaseRepo()),
+      create: (context) => NearbydataCubit(repo: BaseRepo()),
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         key: _globalKey,
-        body: BlocConsumer<NearbyDetailsCubit, ProfileState>(
+        body: BlocConsumer<NearbydataCubit, NeearbyState>(
             listener: (context, state) {
-              if (state is ProfileLoadingState) {
-                //showLoader("Updating profile.......");
+              if (state is NeearbyLoadingState) {
+
               }
-              if (state is GetOtpLoadingState) {
-                showLoader("Uploading picture.......");
-              }
-              if (state is GetProfileDataState) {
-                //hideLoader();
-                // print("Picture updated successfully....");
+
+              if (state is GetNeearbyDataState) {
+
                 FocusScope.of(context).requestFocus(FocusNode());
                /* _globalKey.currentState!.showSnackBar(getSnackBar(
-                    "Picture updated successfully", "OK", _globalKey));*/
-                NearbyResponse profileResponse = NearbyResponse.fromJson(state.response);
-               // print(state.response);
-               // id = profileResponse.success!.users![0].id!;
+                    "Picture updated successfully", "OK", _globalKey));
+                SearchCab searchCab = SearchCab.fromJson(state.response);
+                // NearbyResponse profileResponse = NearbyResponse.fromJson(state.response);
+                print(state.response);
+                // id = profileResponse.success!.users![0].id!;
+                print(searchCab.success!.users![0]);
 
-                distance = profileResponse.success!.users![0].distance!;
-                id = profileResponse.success!.users![0].id!;
-                latitude = profileResponse.success!.users![0].latitude!;
-                longitude = profileResponse.success!.users![0].longitude!;
-                /*firstname = profileResponse.success!.users![0].firstName!;
-                lastname = profileResponse.success!.users![0].lastName!;
-                email = profileResponse.success!.users![0].email!;
-                mobile = profileResponse.success!.users![0].mobile!;
-                user_name = profileResponse.success!.users![0].username!;
-                latitude = profileResponse.success!.users![0].latitude!;
-                longitude = profileResponse.success!.users![0].longitude!;*/
-                // print('   edewiode m  $firstname + $lastname + $email + $mobile');
+
+                setState(() {
+                  user = searchCab.success!.users!;
+                });
+                trendIndex = user.indexWhere((f) => f.vehicleType == 'car');
+                idcar=searchCab.success!.users![trendIndex!].id;
+                distancecar = searchCab.success!.users![trendIndex!].distance! ;
+                bikeIndex = user.indexWhere((f) => f.vehicleType == 'bike');
+                idbike=searchCab.success!.users![bikeIndex!].id;
+                distancebike = searchCab.success!.users![bikeIndex!].distance! ;
+                autoIndex = user.indexWhere((f) => f.vehicleType == 'auto');
+                idauto=searchCab.success!.users![autoIndex!].id;
+                distanceauto = searchCab.success!.users![autoIndex!].distance! ;
+
+                print('data ${trendIndex} ${bikeIndex} ${autoIndex}');*/
+
+
+
               }
-              if(state is ProfileSuccessState){
-                //print(state.response);
+              if(state is NeearbySuccessState){
+                print(state.response);
               }
 
               /*if (state is SuccessState) {
@@ -370,12 +374,12 @@ class NearbyScreenState extends State<NearbyScreen> {
                 NavigationService().navigationKey.currentState!.pushNamed(personalDetailsRoute, arguments: data);
               }*/
 
-              if (state is ProfileErrorState) {
-              /*  print("error => ${state.response}");
-                hideLoader();
+              if (state is NearbyErrorState) {
+                print("error => ${state.response}");
+
                 FocusScope.of(context).requestFocus(FocusNode());
                 _globalKey.currentState!.showSnackBar(
-                    getSnackBar(state.response["message"], "OK", _globalKey));*/
+                    getSnackBar(state.response["message"], "OK", _globalKey));
               }
 
               /*if (state is AuthErrorState) {
@@ -393,28 +397,18 @@ class NearbyScreenState extends State<NearbyScreen> {
             buildWhen: (previous, current) => previous != current,
             builder: (context, state) => Stack(
               children: [
-                BookRide(distance: distance,latitude: latitude,accesstoken:widget.data['token'],userid: int.parse(widget.data['user_id']),driverid: id,longitude: longitude,
-
+                NearbyScreen(nearest:widget.nearest)
+                /*NavigationRoute(idcar: idcar,idbike: idbike,idauto: idauto,distancebike: distancebike,distanceauto: distanceauto,distancecar: distancecar,accesstoken: widget.accesstoken,driverid: widget.driverid,userid: widget.userid,latitude: widget.latitude,longitude: widget.longitude,sourcelatitude: widget.sourcelatitude,sourcelongitude: widget.sourcelongitude,
                     getnearby: () {
+                      print(widget.userid);
+                      print(widget.driverid);
 
-                      // print('${widget.data['latitude']}  ijfoef3ijf');
-                      // NavigationService().navigationKey.currentState.pushNamed(login);
-                      context.read<NearbyDetailsCubit>().getNearbyDrivers({
+                      context.read<BookingCubit>().getNearbyDrivers({
 
-                        "user_id": widget.data['user_id'],
-                        "latitude": widget.data['latitude'],//latitude,
-                        "longitude": widget.data['longitude']//identifier
-                      }, widget.data['token']);
-                    }),
-                /*CustomDrawer(fname: firstname,lname: lastname,email: email,number: mobile,latitude: latitude,longitude: longitude,accesstoken: widget.data['token'],id: widget.data['user_id'].toString(),username: user_name,
+                        "latitude": widget.sourcelatitude,//latitude,
+                        "longitude": widget.sourcelongitude//identifier
 
-                    onClick: () {print('${widget.data['token']} ffffffffff');
-                    // NavigationService().navigationKey.currentState.pushNamed(login);
-                    context.watch<PersonalDetailsCubit>().getPersonalDetails//('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNjMyNzE3MzU2LCJleHAiOjE2MzI4MDM3NTZ9.d9F6tTjE_goi8U4fmc_pZ5yDlT1d140Kqc1-4QXBNcY',2);//
-                      (widget.data['token'],widget.data['user_id']);//generateOtpRegisteration(params);
-                    },onClickUpdate: (Map<String, dynamic> params){
-                      // NavigationService().navigationKey.currentState.pushNamed(login);
-                      context.read<PersonalDetailsCubit>().updateProfile(params, widget.data['token'], widget.data['user_id']);
+                      }, widget.accesstoken);
                     }),*/
 
               ],

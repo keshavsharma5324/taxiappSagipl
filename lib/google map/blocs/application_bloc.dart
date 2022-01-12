@@ -12,7 +12,7 @@ import 'package:taxiapp/google%20map/models/place.dart';
 import 'package:taxiapp/google%20map/models/place_search.dart';
 import 'package:taxiapp/google%20map/services/geolocator_service.dart';
 import 'package:taxiapp/google%20map/services/places_service.dart';
-import 'package:taxiapp/screns/registerUser/booking_state.dart';
+import 'package:taxiapp/screns/registerUser/nearby_state.dart';
 
 class ApplicationBloc extends Cubit<ProfileState> {
   final geoLocatorService = GeolocatorService();

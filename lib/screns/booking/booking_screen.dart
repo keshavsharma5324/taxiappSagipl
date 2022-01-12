@@ -21,7 +21,7 @@ import 'package:taxiapp/route/route_constant.dart';
 import 'package:taxiapp/screns/Profile/choicecab.dart';
 import 'package:taxiapp/screns/Profile/get_nearby_derivers_cubit.dart';
 import 'package:taxiapp/screns/registerUser/personal_details_screen.dart';
-import 'package:taxiapp/screns/registerUser/booking_state.dart';
+import 'package:taxiapp/screns/registerUser/nearby_state.dart';
 import 'package:taxiapp/service/navigation_service.dart';
 import 'package:taxiapp/utils/AppUtils.dart';
 import 'package:taxiapp/utils/Constant.dart';
@@ -203,6 +203,7 @@ class NearbyScreenState extends State<NearbyScreen> {
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:taxiapp/Model/response/model/nearest.dart';
 import 'package:taxiapp/Model/response/model/search_cab.dart';
 
 import 'package:taxiapp/base/base_repo.dart';
@@ -230,7 +231,8 @@ class BookingScreen extends StatefulWidget {
   int? userid,driverid;
   String? accesstoken;
   double? latitude,longitude,sourcelatitude,sourcelongitude;
-  BookingScreen({this.latitude,this.longitude,this.sourcelatitude,this.sourcelongitude,this.userid,this.driverid,this.accesstoken});
+  Nearest? nearest;
+  BookingScreen({this.nearest,this.latitude,this.longitude,this.sourcelatitude,this.sourcelongitude,this.userid,this.driverid,this.accesstoken});
 
   @override
   State<StatefulWidget> createState() => BookingScreenState();
@@ -303,76 +305,7 @@ class BookingScreenState extends State<BookingScreen> {
                 print(state.response);
               }
 
-              /*if (state is SuccessState) {
-    print('successstate');
-    _globalKey.currentState!.showSnackBar(getSnackBar(
-    state.response["errors"][0]["msg"]
-    , "OK", _globalKey));
 
-    // print('r54ggg');
-    print("this sample text"+state.response["errors"][0]["msg"]);
-    //print(${response.state});
-    hideLoader();
-    //print("Response Value -> ${state.response}");
-
-    ProfileResponse loginResponse = ProfileResponse.fromMap(state.response);
-    AppUtils.token = loginResponse.success!.token!;
-    TaxiUKPrefs.instance.saveSecureToken(tokenKey, loginResponse.success!.token!);
-
-    if(loginResponse.success != null){
-    //NavigationService().navigationKey.currentState!.pushNamed(PersonalDetailsScreen, arguments: );
-    }
-    else{
-
-
-
-    /*if(loginResponse.data!.stage == Constants.passengerStagePersonalDetailCompleted){
-                    TaxiUKPrefs.instance.saveLoginStatus(true);
-                    SharedPreferenceUtils().saveUserData(loginResponse!.data!);
-                    NavigationService().navigationKey.currentState!.pushNamedAndRemoveUntil(dashboard, (route) => false);
-
-                  }else if(loginResponse.data!.stage == Constants.passengerStagePasswordCreated){
-                    _globalKey.currentContext!.read<LoginCubit>().getPersonalDetails(loginResponse.data!.token.toString());
-                  }else{
-
-                     }*/
-    }
-    }*/
-              /*RegisterResponse registerResponse = RegisterResponse.fromMap(state.response);
-                if(registerResponse.isSuccess){
-                  var args = {
-                    "from": 'login',
-                    "code": '',
-                    "mobile": registerResponse.data.phone_number,
-                    "ext": registerResponse.data.ext,
-                   // "type": Constants.loginTypeRegistration
-                  };
-                  NavigationService().navigationKey.currentState!.pushNamed(otpRoute, arguments: args);
-                }*//*else{
-                 if(registerResponse.meta != null){
-                   if(!registerResponse.meta.is_user_exist){
-                     var args = {
-                       "from": 'login',
-                       "code": '',
-                       "mobile": registerResponse.data.phone_number,
-                       "ext": registerResponse.data.ext,
-                       //"type": Constants.loginTypeRegistration
-                     };
-                     NavigationService().navigationKey.currentState!.pushNamed(otpRoute, arguments: args);
-                   } else{
-                     NavigationService().navigationKey.currentState!.pushNamedAndRemoveUntil(login, (Route route) => false);
-                   }
-                 }
-                }
-              }*/
-              /* if(state is UserDataSuccessState){
-                hideLoader();
-                ProfileResponse profileResponse = ProfileResponse.fromMap(state.response);
-                AppUtils.userData = profileResponse.data;
-                AppUtils.fname = (AppUtils.userData!.fname == null ? "" : AppUtils.userData!.fname)!;
-                var data = {"fromPage": "register"};
-                NavigationService().navigationKey.currentState!.pushNamed(personalDetailsRoute, arguments: data);
-              }*/
 
               if (state is BookingErrorState) {
                 print("error => ${state.response}");
@@ -382,16 +315,7 @@ class BookingScreenState extends State<BookingScreen> {
                     getSnackBar(state.response["message"], "OK", _globalKey));
               }
 
-              /*if (state is AuthErrorState) {
-                print("error => ${state.response}");
-                hideLoader();
-                FocusScope.of(context).requestFocus(FocusNode());
-                if(state.response["is_user_exist"]){
-                  NavigationService().navigationKey.currentState!.pushNamedAndRemoveUntil(login, (Route route) => false);
-                }
-                _globalKey.currentState!.showSnackBar(getSnackBar(
-                    state.response["message"], "OK", _globalKey));
-              }*/
+
             },
             listenWhen: (previous, current) => previous != current,
             buildWhen: (previous, current) => previous != current,
@@ -402,44 +326,13 @@ class BookingScreenState extends State<BookingScreen> {
                   print(widget.userid);
                   print(widget.driverid);
 
-                  // print('${widget.data['latitude']}  ijfoef3ijf');
-                  // NavigationService().navigationKey.currentState.pushNamed(login);
                   context.read<BookingCubit>().getNearbyDrivers({
-                    //   "email": phone,
-                    //  "password": password,
-                    //"user_id": widget.,
+
                     "latitude": widget.sourcelatitude,//latitude,
                     "longitude": widget.sourcelongitude//identifier
-                    //"ext": Constants.defaultCountryCode,
-                    //"user_type": Constants.userTypePassenger,
-                  }, widget.accesstoken);//.generateOtpRegisteration(params:);
+
+                  }, widget.accesstoken);
                 }),
-                /*BookRide(distance: distance,latitude: latitude,accesstoken:widget.data['token'],userid: int.parse(widget.data['user_id']),driverid: id,longitude: longitude,
-
-                    getnearby: () {
-
-                      // print('${widget.data['latitude']}  ijfoef3ijf');
-                      // NavigationService().navigationKey.currentState.pushNamed(login);
-                      context.read<NearbyDetailsCubit>().getNearbyDrivers({
-                        //   "email": phone,
-                        //  "password": password,
-                        "user_id": widget.data['user_id'],
-                        "latitude": widget.data['latitude'],//latitude,
-                        "longitude": widget.data['longitude']//identifier
-                        //"ext": Constants.defaultCountryCode,
-                        //"user_type": Constants.userTypePassenger,
-                      }, widget.data['token']);//.generateOtpRegisteration(params:);
-                    }),*/
-                /*CustomDrawer(fname: firstname,lname: lastname,email: email,number: mobile,latitude: latitude,longitude: longitude,accesstoken: widget.data['token'],id: widget.data['user_id'].toString(),username: user_name,
-
-                    onClick: () {print('${widget.data['token']} ffffffffff');
-                    // NavigationService().navigationKey.currentState.pushNamed(login);
-                    context.watch<PersonalDetailsCubit>().getPersonalDetails//('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNjMyNzE3MzU2LCJleHAiOjE2MzI4MDM3NTZ9.d9F6tTjE_goi8U4fmc_pZ5yDlT1d140Kqc1-4QXBNcY',2);//
-                      (widget.data['token'],widget.data['user_id']);//generateOtpRegisteration(params);
-                    },onClickUpdate: (Map<String, dynamic> params){
-                      // NavigationService().navigationKey.currentState.pushNamed(login);
-                      context.read<PersonalDetailsCubit>().updateProfile(params, widget.data['token'], widget.data['user_id']);
-                    }),*/
 
               ],
             )),

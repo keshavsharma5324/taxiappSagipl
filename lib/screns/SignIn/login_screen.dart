@@ -85,22 +85,22 @@ class LoginScreenState extends State<LoginScreen> {
                     "user_id": loginResponse.success.userId,
                     "token": loginResponse.success.token
                   };
-
-                    SharedPreferences prefs = await SharedPreferences.getInstance();
-                    prefs.setString('tokenValue',loginResponse.success.token! );
+                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  prefs.setString('tokenValue',loginResponse.success.token!.toString().trim() );
+                  prefs.setString('user_id',loginResponse.success.userId!.toString().trim() );
                   String stringValue = prefs.getString('tokenValue')!;
                   print('stringvalue  ${stringValue}');
 
+                    print(prefs.getBool('newLaunch'));
+                    if (prefs.containsKey("newLaunch")) {
+                      prefs.setBool('newLaunch', false);
+                    } else {
+                      prefs.setBool('newLaunch', false);
+                    }
                   NavigationService().navigationKey.currentState!.pushNamed(personalDetailsRoute, arguments: args);
                  // print(loginResponse.success.token);
-
-
-
                 }
                 else{
-
-
-
                   /*if(loginResponse.data!.stage == Constants.passengerStagePersonalDetailCompleted){
                     TaxiUKPrefs.instance.saveLoginStatus(true);
                     SharedPreferenceUtils().saveUserData(loginResponse!.data!);
@@ -148,7 +148,6 @@ class LoginScreenState extends State<LoginScreen> {
                 var data = {"fromPage": "register"};
                 NavigationService().navigationKey.currentState!.pushNamed(personalDetailsRoute, arguments: data);
               }*/
-
               if (state is AuthErrorState) {
                 print('errorstate');
                 //print("error => ${state.response}");

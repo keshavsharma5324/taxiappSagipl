@@ -1,6 +1,9 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
@@ -9,11 +12,15 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoding/geocoding.dart' ;
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxiapp/Model/response/model/nearest.dart';
 //import 'package:taxiapp/google%20map/models/location.dart';
 import 'package:taxiapp/google%20map/models/place.dart';
 import 'package:taxiapp/google%20map/models/place_search.dart';
 import 'package:taxiapp/route/route_constant.dart';
 import 'package:taxiapp/screns/booking/booking_screen.dart';
+import 'package:taxiapp/screns/nearbyrides/nearby.dart';
+import 'package:taxiapp/screns/nearbyrides/nearby_screen.dart';
 //import 'package:taxiapp/google%20map/services/geolocator_service.dart';
 
 import 'package:taxiapp/service/navigation_service.dart';
@@ -21,8 +28,11 @@ import 'package:taxiapp/utils/ColorHelper.dart';
 import 'package:taxiapp/utils/imagehelper.dart';
 
 import 'get_nearby_derivers_cubit.dart';
+import 'dart:ui' as ui;
 import '../booking/navigation_route.dart';
 //import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+
 
 class BookRide extends StatefulWidget {
  // const BookRide({Key? key}) : super(key: key);
@@ -51,12 +61,15 @@ class _BookRideState extends State<BookRide> {
   String googleAPiKey = "AIzaSyAvFh2R7W_4hVBK_UAo5B64iriZLsyaqRo";
   Completer<GoogleMapController> _mapController = Completer();
   StreamSubscription? locationSubscription;
+  Nearest? nearest;
   bool map = true;
   var _controller = TextEditingController();
   String? getplaceid;
   late String autcomplete;
   final Set<Marker> _markers = {};
   List<Location>? locations;
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
 
   Location? loc;
 
@@ -70,6 +83,8 @@ class _BookRideState extends State<BookRide> {
   double distance = 40;
   double rating=4.0;
   late Position currentLocation1;
+  Uint8List? markerIcon;
+  Marker? marker;
   //Timer? time= StackTrace.curren;
 
 /*  var cp = CameraPosition(
@@ -84,13 +99,26 @@ class _BookRideState extends State<BookRide> {
   //final Set<Marker> _markers = {};
   late LatLng _lastMapPosition = LatLng(currentLocation.longitude,currentLocation.latitude);
   bool map1 = false;
+  Future<Uint8List> getBytesFromAsset(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!.buffer.asUint8List();
+  }
+  /*logo()async{
+    markerIcon = await getBytesFromAsset(splashLogo, 100);
+    marker = Marker(icon: BitmapDescriptor.fromBytes(markerIcon!), markerId: 8);
+
+  }*/
 
   @override
   void initState() {
     // final applicationBloc =
     //   Provider.of<ApplicationBloc>(context, listen: false);
     setCurrentLocation();
+    //logo();
     widget.getnearby!();
+
     _addMarker(LatLng(_originLatitude, _originLongitude), "origin",
         BitmapDescriptor.defaultMarker);
 
@@ -98,9 +126,7 @@ class _BookRideState extends State<BookRide> {
     _addMarker(LatLng(_destLatitude, _destLongitude), "destination",
         BitmapDescriptor.defaultMarkerWithHue(90));
     _getPolyline();
-    Timer(Duration(seconds: 3), () {
 
-    });
 
     //super.initState();
     Timer(Duration(seconds: 3), () {
@@ -122,7 +148,7 @@ class _BookRideState extends State<BookRide> {
     /*_controller.addListener(() {
        _onChanged();
      });*/
-    Timer.periodic(Duration(seconds: 5), (timer) {
+    Timer.periodic(Duration(seconds: 2), (timer) {
       _onAddMarkerButtonPressed();
     });
 
@@ -147,6 +173,51 @@ class _BookRideState extends State<BookRide> {
       });
     });
   }
+  void connect()async{
+   // Position position = await _getGeoLocationPosition();
+    //var data={'user_id':'3','lat':currentLocation!.latitude,'long':currentLocation!.longitude,'user_name':'babulal','driver_id':'3'};
+    IO.Socket socket = IO.io('http://192.168.0.105:30011',
+        IO.OptionBuilder()
+            .setTransports(['websocket']) // for Flutter or Dart VM
+
+            .disableAutoConnect()  // disable auto-connection
+        //.setExtraHeaders({'foo': 'bar'}) // optional
+            .build()
+    );
+    socket.connected?null:socket.connect();
+    var data={'user_id':'3','startlat': '26.8611','startlng': '75.7953'};
+    socket.emit('send_nearest_driver', data);
+    /* socket.on('get_driver_location_3', (data) {
+      driver = Driver.fromJson(data);
+      print(data);
+      print(driver!.userName);
+    });
+    socket.on('get_driver_location_3', (data) {
+     // driver = Driver.fromJson(data);
+      print(data);
+    //  print(driver!.userName);
+    });
+    socket.on('get_driver_location_3', (data) {
+      // driver = Driver.fromJson(data);
+      print(data);
+      //  print(driver!.userName);
+    });*/
+    socket.on('get_nearest_driver_3', (data) {
+      setState(() {
+        nearest = Nearest.fromJson(data);
+        print(nearest!.startlat);
+      });
+
+      // driver = Driver.fromJson(data);
+    //  print("request nearest cab  $nearest");
+      //  print(driver!.userName);
+    });
+
+    print('check socket connection: ${socket.connected}');
+
+
+  }
+
 
   /*_onChanged() {
 
@@ -218,8 +289,6 @@ class _BookRideState extends State<BookRide> {
     setState(() {
       searchResults;
     });
-
-
     // notifyListeners();
   }
 
@@ -281,7 +350,8 @@ class _BookRideState extends State<BookRide> {
     _lastMapPosition = position.target;
   }*/
 
-  _onAddMarkerButtonPressed() {
+  _onAddMarkerButtonPressed()async {
+    markerIcon = await getBytesFromAsset(splashLogo, 100);
     setState(() {
       _markers.add(
           Marker(
@@ -300,7 +370,7 @@ class _BookRideState extends State<BookRide> {
               onTap: (){
               },
 
-              icon: BitmapDescriptor.defaultMarker));
+              icon: BitmapDescriptor.fromBytes(markerIcon!)));
     });
   }
   void _onMap1Created(GoogleMapController controller) async {
@@ -326,7 +396,62 @@ class _BookRideState extends State<BookRide> {
   @override
   Widget build(BuildContext context) {
 
-    return Scaffold(body:
+    return Scaffold(key: _scaffoldKey,drawer:Drawer(
+      child: ListView(
+        // Important: Remove any padding from the ListView.
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          UserAccountsDrawerHeader(decoration: BoxDecoration(color: kPrimaryColor),
+            accountName: Text("Abhishek Mishra"),
+            accountEmail: Text("abhishekm977@gmail.com"),
+            currentAccountPicture: CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Text(
+                "A",
+                style: TextStyle(fontSize: 40.0,color: Colors.black),
+              ),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.home), title: Text("Home"),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.person), title: Text("Profile"),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.settings), title: Text("Settings"),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.logout), title: Text("Logout"),
+            onTap: () async{
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              print(prefs.getBool('newLaunch'));
+              if (prefs.containsKey("newLaunch")) {
+                prefs.setBool('newLaunch', true);
+              } else {
+                prefs.setBool('newLaunch', true);
+              }
+              NavigationService().navigationKey.currentState!.pushNamed(login);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.contacts), title: Text("Contact Us"),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    ),body:
 
     map//(currentLocation == null)
         ? Center(
@@ -334,6 +459,7 @@ class _BookRideState extends State<BookRide> {
     )
         : SafeArea(child: Stack(children:[Column(
       children: [
+        Container(color: Colors.white,height: 60,padding: EdgeInsets.symmetric(horizontal: 16),child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [InkWell(onTap:(){_scaffoldKey.currentState!.openDrawer();},child:Icon(Icons.list,color: Colors.black,)),Text('SAG CAB',style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),),Icon(Icons.list,color: Colors.white)],),),
 
     Row(crossAxisAlignment: CrossAxisAlignment.start,children: [
     Container(height: 92.4,
@@ -582,7 +708,7 @@ Container(color: Color(0xffFFFFFF),width: MediaQuery.of(context).size.width-50,c
           };*/
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => BookingScreen(userid: widget.userid,driverid: widget.driverid,accesstoken: widget.accesstoken!,latitude: _destLatitude,longitude: _destLongitude,sourcelatitude: currentLocation.latitude,sourcelongitude: currentLocation.longitude,)),
+            MaterialPageRoute(builder: (context) => NearbydataScreen(nearest: nearest,))//BookingScreen(nearest:nearest,userid: widget.userid,driverid: widget.driverid,accesstoken: widget.accesstoken!,latitude: _destLatitude,longitude: _destLongitude,sourcelatitude: currentLocation.latitude,sourcelongitude: currentLocation.longitude,)),
           );
           //NavigationService().navigationKey.currentState!.pushNamed(navigationroute, arguments: args);
 

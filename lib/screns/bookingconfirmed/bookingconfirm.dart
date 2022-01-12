@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:taxiapp/Model/response/model/driversocket.dart';
 import 'package:taxiapp/Model/response/model/profile/bookedride.dart';
 import 'package:taxiapp/screns/bookingconfirmed/booking_cubit.dart';
 import 'package:taxiapp/screns/bookingconfirmed/booking_screen.dart';
 import 'package:taxiapp/utils/ColorHelper.dart';
 import 'package:taxiapp/utils/imagehelper.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 //import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /*class Bookingconfirm extends StatefulWidget {
@@ -402,6 +404,19 @@ class _BookingconfirmState extends State<Bookingconfirm> {
   }
 
 }*/
+class StreamSocket {
+  final _socketResponse = StreamController<Map<String, dynamic>>();
+
+  void Function(Map<String, dynamic> data) get addResponse =>
+      _socketResponse.sink.add;
+
+  Stream<Map<String, dynamic>> get getResponse => _socketResponse.stream;
+
+  void dispose() {
+    _socketResponse.close();
+  }
+}
+
 class BookedRoute extends StatefulWidget {
   final dynamic? data;
   int? userid,driverid,idcar,idbike,idauto;
@@ -420,6 +435,8 @@ class _BookedRouteState extends State<BookedRoute> {
   List<double>? newDistance;
   bool app  = false;int? id;
   Completer<GoogleMapController> mapController = Completer();
+  StreamSocket? streamSocket = StreamSocket();
+  Driver? driver;
 
   Set<Marker> _markers = Set<Marker>();
   LatLng? currentLocation;
@@ -427,6 +444,7 @@ class _BookedRouteState extends State<BookedRoute> {
   double distanceInMeters = 0;
   List<dynamic>? data;
   bool price= false;//car=false,bike=false,auto=false;
+  late IO.Socket socket;
 
   Set<Polyline> _polylines = Set<Polyline>();
   List<LatLng> polylineCoordinates = [];
@@ -447,16 +465,38 @@ class _BookedRouteState extends State<BookedRoute> {
   totalDistance += calculateDistance(data[i]["lat"], data[i]["lng"], data[i+1]["lat"], data[i+1]["lng"]);
   }
   print(totalDistance);*/
+  void connect(){
+    IO.Socket socket = IO.io('http://192.168.0.105:30011',
+        IO.OptionBuilder()
+            .setTransports(['websocket']) // for Flutter or Dart VM
+
+            .disableAutoConnect()  // disable auto-connection
+            //.setExtraHeaders({'foo': 'bar'}) // optional
+            .build()
+    );
+    socket.connected?null:socket.connect();
+    socket.emit('msg', 'test');
+    socket.on('on_connect', (data) {
+      driver = Driver.fromJson(data);
+      print(driver!.userName);
+    });
+    print(streamSocket!.getResponse);
+   /* socket = IO.io("http://192.168.0.105:30011");
+    //socket!.connect();
+    socket.onConnect((data){print('Connected');});*/
+    print('check socket connection: ${socket.connected}');
+
+
+  }
 
 
   @override
   void initState() {
     super.initState();
 
+
     widget.getbookingconfirmed!();
-
-
-
+    //connect();
     Timer(Duration(seconds: 3), () {
       polylinePoints = PolylinePoints();
       this.setInitialLocation();
@@ -467,11 +507,9 @@ class _BookedRouteState extends State<BookedRoute> {
     Timer(Duration(seconds: 3), () {
       setState(() {
         app=true;
-      });
+      });connect();
     });
-    Timer.periodic(Duration(seconds: 30), (timer) {
-      widget.getbookingconfirmed!();
-    });
+
   }
 
   void setInitialLocation() {
@@ -493,7 +531,7 @@ class _BookedRouteState extends State<BookedRoute> {
       ];
       for(var i = 0; i < data!.length-1; i++){
         setState(() {
-          distanceInMeters = distanceInMeters! + calculateDistance(data![i]["lat"], data![i]["lng"], data![i+1]["lat"], data![i+1]["lng"])!;
+          distanceInMeters = distanceInMeters + calculateDistance(data![i]["lat"], data![i]["lng"], data![i+1]["lat"], data![i+1]["lng"]);
         });}
 
 
